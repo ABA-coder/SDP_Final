@@ -1,0 +1,59 @@
+@startuml
+title Decorator | Student enters h during Practice words
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #40546E
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+hide footbox
+
+actor Student
+participant ConsoleClient as Console
+participant LanguageLearningFacade as Facade
+participant LessonSession as Session
+participant "HintClient\nClient" as Client
+participant "HintDecorator\nConcrete Decorator" as Decorator
+participant "Exercise\nChoiceExercise or TypingExercise" as Wrapped
+participant ProgressFacade as Progress
+
+Student -> Console : h
+Console -> Facade : revealHint()
+Facade -> Session : hintUsed()
+Session --> Facade : false
+Facade -> Session : current()
+Session --> Facade : original Exercise
+Facade -> Client : addHint(original Exercise)
+create Decorator
+Client -> Decorator : new HintDecorator(original Exercise)
+note right of Decorator : Constructor stores the wrapped Exercise.
+Client --> Facade : decorated Exercise
+Facade -> Session : applyHint(decorated Exercise)
+note over Session
+  The session now uses the wrapper for this question.
+  hintUsed prevents another wrapper on repeated h.
+end note
+Facade -> Session : current()
+Session --> Facade : decorated Exercise
+Facade --> Console : decorated Exercise
+Console -> Decorator : hint()
+Decorator -> Wrapped : word() (delegated)
+Wrapped --> Decorator : Word with translation and example
+Decorator --> Console : first letter, length and example
+Console --> Student : display hint
+
+group Later, while ProgressFacade scores a correct answer
+  Progress -> Decorator : accepts(answer)
+  Decorator -> Wrapped : accepts(answer)
+  Wrapped --> Decorator : true
+  Decorator --> Progress : true
+  Progress -> Decorator : reward()
+  Decorator -> Wrapped : reward()
+  Wrapped --> Decorator : 10
+  Decorator --> Progress : min(5, 10) = 5
+end
+note over Progress
+  The answer is saved with 5 XP.
+  A wrong answer still earns 0 XP.
+end note
+@enduml

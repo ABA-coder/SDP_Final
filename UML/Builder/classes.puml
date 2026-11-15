@@ -1,0 +1,55 @@
+@startuml
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+hide empty members
+title Builder - assembling a practice lesson
+
+package "Patterns.Builder" {
+  class LessonBuilderClient <<Client>> {
+    - director: LessonDirector
+    + create(title, topic, words, vocabulary, mode): Lesson
+  }
+  class LessonDirector <<Director>> {
+    + construct(builder, title, topic, words, vocabulary, mode): Lesson
+  }
+  interface LessonBuilder <<Builder>> {
+    + title(String): LessonBuilder
+    + topic(String): LessonBuilder
+    + addExercise(Exercise): LessonBuilder
+    + build(): Lesson
+  }
+  class VocabularyLessonBuilder <<Concrete Builder>> {
+    - title: String
+    - topic: String
+    - exercises: List<Exercise>
+    + build(): Lesson
+  }
+  class Lesson <<Product / record>> {
+    + title(): String
+    + topic(): String
+    + exercises(): List<Exercise>
+  }
+}
+class "ExerciseFactoryClient" as Factories <<from Patterns.FactoryMethod>>
+interface "Exercise" as Exercise <<from Patterns.FactoryMethod>>
+
+LessonBuilderClient --> LessonDirector : delegates construction
+LessonBuilderClient ..> VocabularyLessonBuilder : creates a fresh builder
+LessonDirector ..> LessonBuilder : invokes construction steps
+LessonDirector --> Factories : creates exercises
+VocabularyLessonBuilder ..|> LessonBuilder
+VocabularyLessonBuilder ..> Lesson : build()
+Lesson o--> "1..*" Exercise : immutable list
+
+note bottom of Lesson
+  Product used by Practice words.
+  The Lesson constructor copies the exercise list.
+  Learning cards use StudySession instead.
+end note
+@enduml

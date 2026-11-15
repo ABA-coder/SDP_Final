@@ -1,0 +1,48 @@
+@startuml
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #40546E
+skinparam ParticipantBackgroundColor #F5F7FB
+skinparam maxMessageSize 250
+hide footbox
+title Builder - how Practice words gets a complete Lesson
+
+participant "LanguageLearningFacade" as Facade
+participant "LessonBuilderClient" as Client
+participant "LessonDirector" as Director
+participant "VocabularyLessonBuilder" as Builder
+participant "ExerciseFactoryClient" as Factories
+
+note over Facade, Client
+  The student chose Practice words, a strategy,
+  an exact word count and an exercise mode.
+  startReview() has selected the words.
+end note
+Facade -> Client : create(title, "Review", words, vocabulary, mode)
+create Builder
+Client -> Builder : new VocabularyLessonBuilder()
+Client -> Director : construct(builder, title, topic, words, vocabulary, mode)
+Director -> Builder : title(title)
+Builder --> Director : builder
+Director -> Builder : topic(topic)
+Builder --> Director : builder
+loop each selected word
+  Director -> Factories : create(mode, word, vocabulary)
+  Factories --> Director : Exercise
+  Director -> Builder : addExercise(exercise)
+  Builder --> Director : builder
+end
+Director -> Builder : build()
+note right of Builder
+  Returns new Lesson(title, topic, exercises).
+  Lesson makes an immutable copy of the list.
+end note
+Builder --> Director : Lesson
+Director --> Client : Lesson
+Client --> Facade : Lesson
+note over Facade
+  The facade passes the product to new LessonSession(lesson).
+  The student can now answer the selected practice exercises.
+end note
+@enduml

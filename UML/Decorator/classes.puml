@@ -1,0 +1,57 @@
+@startuml
+!pragma layout smetana
+title Decorator | Add a hint to an existing practice exercise
+skinparam defaultFontName Segoe UI
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+hide empty members
+
+package "Patterns.FactoryMethod (shared types)" {
+  interface Exercise <<Component>> {
+    + word(): Word
+    + accepts(answer): boolean
+    + hint(): String
+    + reward(): int
+  }
+  class ChoiceExercise <<Concrete Component / record>>
+  class TypingExercise <<Concrete Component / record>>
+}
+package "Patterns.Decorator" {
+  class HintClient <<Client>> {
+    + addHint(exercise: Exercise): Exercise
+  }
+  abstract class ExerciseDecorator <<Base Decorator>> {
+    # wrapped: Exercise
+    + accepts(answer): boolean
+    + hint(): String
+    + reward(): int
+  }
+  class HintDecorator <<Concrete Decorator>> {
+    + HintDecorator(wrapped: Exercise)
+    + hint(): String
+    + reward(): int
+  }
+}
+ChoiceExercise ..|> Exercise
+TypingExercise ..|> Exercise
+ExerciseDecorator ..|> Exercise
+ExerciseDecorator "1" o--> "1" Exercise : wraps and delegates
+HintDecorator --|> ExerciseDecorator
+HintClient ..> HintDecorator : creates
+HintClient ..> Exercise : accepts / returns
+
+note right of HintDecorator
+  hint(): first letter, letter count and example.
+  reward(): min(5, wrapped.reward()).
+  Correct-answer checking is delegated unchanged.
+end note
+note bottom of Exercise
+  The Factory Method product is reused as the Component.
+  Normal exercises award 10 XP for a correct answer;
+  a hinted exercise awards 5 XP.
+end note
+@enduml
