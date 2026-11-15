@@ -1,0 +1,74 @@
+@startuml
+title Facade | How the console uses the same application boundary
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #40546E
+skinparam ParticipantBackgroundColor #F5F7FB
+skinparam ParticipantBorderColor #40546E
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 250
+hide footbox
+
+participant ConsoleClient as Console
+participant LanguageLearningFacade as Facade
+participant StudySession as Cards
+participant ReviewClient as Reviews
+participant LessonBuilderClient as Builder
+participant LessonSession as Practice
+participant ProgressFacade as Progress
+participant "ProgressRepository\n(FileProgressRepository)" as Storage
+participant "ProgressSubject\n(ProgressPublisher)" as Events
+
+note over Console, Facade
+  ConsoleClient depends on LearningApplication.
+  LanguageLearningFacade implements that contract.
+end note
+
+group Start a lesson: read and confirm one card
+  Console -> Facade : startLesson(topic, count)
+  note right of Facade : Select topic words, unseen first.
+  Facade -> Cards : new StudySession(topic, words)
+  Facade --> Console : StudySession
+  note left of Console : Show word, translation and example.
+  Console -> Facade : learnCurrentWord() [Enter]
+  Facade -> Progress : recordStudy(current word, last card?)
+  Progress -> Storage : save(next snapshot)
+  Storage --> Progress : saved
+  Progress --> Facade : return
+  Facade -> Cards : advance()
+  Facade -> Progress : notifyObservers()
+  Progress -> Events : publish(saved snapshot)
+  note over Progress, Storage
+    A new card becomes studied and due today.
+    No answer attempt or XP is added.
+    Final-card completion is saved in the same snapshot.
+  end note
+end
+
+group Practice words: create a session and submit one answer
+  Console -> Facade : startReview(strategy, count, mode)
+  Facade -> Reviews : selectForPractice(strategy, vocabulary, progress, count, today)
+  Reviews --> Facade : exact requested word list
+  Facade -> Builder : create(title, "Review", words, vocabulary, mode)
+  Builder --> Facade : Lesson
+  Facade -> Practice : new LessonSession(lesson)
+  Facade --> Console : LessonSession
+  Console -> Facade : submitAnswer(answer)
+  Facade -> Progress : recordAnswer(current exercise, answer)
+  Progress -> Storage : save(next snapshot)
+  Storage --> Progress : saved
+  Progress --> Facade : AnswerResult
+  Facade -> Practice : record(correct, xp)
+  Facade -> Progress : notifyObservers()
+  Progress -> Events : publish(saved snapshot)
+  Facade --> Console : AnswerResult
+end
+
+note over Facade, Storage
+  These are successful-save paths. If saving throws IOException,
+  the facade does not advance the card or record the answer in the session,
+  and it does not publish the unsaved progress. The console can retry.
+  Practice advancement/completion happens separately through nextExercise().
+end note
+@enduml

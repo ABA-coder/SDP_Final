@@ -1,0 +1,89 @@
+@startuml
+!pragma layout smetana
+title Facade | One application API coordinates learning and practice
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+skinparam packageBackgroundColor white
+hide empty members
+
+class ConsoleClient <<Client>> {
+  + run()
+}
+interface LearningApplication <<Facade contract>> {
+  + startLesson(topic, count): StudySession
+  + learnCurrentWord()
+  + startReview(strategy, count, mode): LessonSession
+  + revealHint(): Exercise
+  + submitAnswer(answer): AnswerResult
+  + nextExercise()
+}
+class LanguageLearningFacade <<Facade>>
+class ProgressFacade <<Additional Facade>> {
+  + recordStudy(word, completedSession)
+  + recordAnswer(exercise, answer): AnswerResult
+  + completeSession()
+  + notifyObservers()
+}
+
+package "Collaborating subsystems (selected classes)" {
+  class StudySession <<Learning state>> {
+    + current(): Word
+    ~ advance()
+  }
+  class LessonSession <<Practice state>> {
+    + current(): Exercise
+    ~ record(correct, reward)
+    ~ advance()
+  }
+  class LessonBuilderClient <<Builder client>> {
+    + create(...): Lesson
+  }
+  class ReviewClient <<Strategy client>> {
+    + selectForPractice(...): List<Word>
+  }
+  class HintClient <<Decorator client>> {
+    + addHint(exercise): Exercise
+  }
+  interface ProgressRepository <<Storage contract>> {
+    + load(): ProgressSnapshot
+    + save(snapshot)
+  }
+  class FileProgressRepository <<File storage>>
+  interface ProgressSubject <<Observer contract>> {
+    + publish(snapshot)
+  }
+}
+
+ConsoleClient --> LearningApplication : uses application operations
+LanguageLearningFacade ..|> LearningApplication
+LanguageLearningFacade --> ProgressFacade : coordinates progress
+LanguageLearningFacade --> StudySession : learning cards
+LanguageLearningFacade --> LessonSession : scored exercises
+LanguageLearningFacade --> ReviewClient : select practice words
+LanguageLearningFacade --> LessonBuilderClient : construct exercises
+LanguageLearningFacade --> HintClient : wrap current exercise
+ProgressFacade --> ProgressRepository : save before committing state
+FileProgressRepository ..|> ProgressRepository
+ProgressFacade --> ProgressSubject : publish saved progress
+
+note top of LanguageLearningFacade
+  Start a lesson teaches cards.
+  Practice words creates and grades exercises.
+  ConsoleClient calls the facade instead of
+  coordinating these subsystems itself.
+end note
+note bottom of ProgressFacade
+  Additional facade groups persistence,
+  review dates and progress notifications.
+end note
+legend bottom
+  Real classes from the uploaded project; selected members only.
+  Subsystem grouping is conceptual, not a new Java package.
+  ~ denotes package-private operations controlled by the facade.
+endlegend
+@enduml
