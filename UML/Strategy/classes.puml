@@ -1,0 +1,54 @@
+@startuml
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+hide empty members
+title Strategy | Choose which words have priority in practice
+
+package "Patterns.Strategy" {
+  class ReviewClient <<Client>> {
+    - context: ReviewContext
+    + select(strategy, vocabulary, progress, count, today): List<Word>
+    + selectForPractice(strategy, vocabulary, progress, count, today): List<Word>
+  }
+  class ReviewContext <<Context>> {
+    - strategy: ReviewStrategy
+    + setStrategy(strategy: ReviewStrategy)
+    + select(vocabulary, progress, count, today): List<Word>
+  }
+  interface ReviewStrategy <<Strategy>> {
+    + name(): String
+    + select(vocabulary, progress, limit, today): List<Word>
+  }
+  class SpacedRepetitionStrategy <<ConcreteStrategy>>
+  class WeakWordsStrategy <<ConcreteStrategy>>
+}
+
+ReviewClient *--> ReviewContext : owns one reusable context
+ReviewContext --> ReviewStrategy : delegates word selection
+SpacedRepetitionStrategy ..|> ReviewStrategy
+WeakWordsStrategy ..|> ReviewStrategy
+
+note top of ReviewClient
+  LanguageLearningFacade calls this client.
+  select() returns the strategy's priority list.
+  selectForPractice() fills the chosen session size:
+  priorities, then new words, then other words.
+  Every word appears once; supported size is 1..24.
+end note
+note bottom of ReviewStrategy
+  SpacedRepetitionStrategy: studied words due today or earlier;
+  order by due date, then English word.
+  WeakWordsStrategy: studied words, ordered by accuracy,
+  correct-answer streak, then English word (all ascending).
+  ---
+  A studied word may come from a confirmed learning card
+  or a submitted practice answer.
+  Both algorithms read the same immutable ProgressSnapshot.
+end note
+@enduml

@@ -1,0 +1,55 @@
+@startuml
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #40546E
+skinparam sequenceParticipantBackgroundColor #F5F7FB
+skinparam maxMessageSize 250
+hide footbox
+title Strategy in use | Practice words: choose a method and 11 words
+
+actor Student
+participant ConsoleClient as Console
+participant LanguageLearningFacade as Facade
+participant ReviewClient as Client
+participant ReviewContext as Context
+participant "chosenStrategy: ReviewStrategy" as Strategy
+
+Student -> Console : Practice words; method; count = 11; exercise mode
+note over Console, Strategy
+  Choice 1: SpacedRepetitionStrategy.
+  Choice 2: WeakWordsStrategy.
+end note
+Console -> Facade : startReview(chosenStrategy, 11, mode)
+Facade -> Client : selectForPractice(strategy, vocabulary, progress, 11, today)
+activate Client
+Client -> Client : select(strategy, vocabulary, progress, 11, today)
+Client -> Context : setStrategy(chosenStrategy)
+Client -> Context : select(vocabulary, progress, 11, today)
+Context -> Strategy : select(vocabulary, progress, 11, today)
+note right of Strategy
+  Spaced repetition: studied and due words first.
+  Weak words: studied words with lowest accuracy first.
+end note
+Strategy --> Context : priority words (up to 11)
+Context --> Client : immutable priority list
+note over Client
+  Inline fill step in selectForPractice():
+  keep priorities in a LinkedHashSet;
+  append unselected new words, then other words;
+  stop at exactly 11 distinct words.
+end note
+Client --> Facade : immutable list of 11 words
+deactivate Client
+note over Facade
+  Build practice exercises from these words
+  through LessonBuilderClient and create LessonSession.
+end note
+Facade --> Console : LessonSession containing 11 exercises
+Console --> Student : 11 practice questions
+
+note over Facade, Client
+  The separate dueCount() operation uses select() with the due strategy.
+  Its result counts truly due words; filling practice does not alter that count.
+end note
+@enduml
