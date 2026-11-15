@@ -1,0 +1,63 @@
+@startuml
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+hide empty members
+title Factory Method - creating the selected exercise type
+
+package "Patterns.FactoryMethod" {
+  class ExerciseFactoryClient <<Client>> {
+    - factories: Map<ExerciseMode, ExerciseFactory>
+    + create(mode, word, vocabulary): Exercise
+  }
+  abstract class ExerciseFactory <<Creator>> {
+    + create(word, vocabulary): Exercise
+    # {abstract} createExercise(word, vocabulary): Exercise
+  }
+  class ChoiceExerciseFactory <<Concrete Creator>> {
+    # createExercise(word, vocabulary): Exercise
+  }
+  class TypingExerciseFactory <<Concrete Creator>> {
+    # createExercise(word, vocabulary): Exercise
+  }
+  interface Exercise <<Product>> {
+    + word(): Word
+    + instruction(): String
+    + options(): List<String>
+    + accepts(answer): boolean
+    + reward(): int
+  }
+  class ChoiceExercise <<Concrete Product / record>> {
+    + word(): Word
+    + options(): List<String>
+    + instruction(): String
+  }
+  class TypingExercise <<Concrete Product / record>> {
+    + word(): Word
+    + options(): List<String>
+    + instruction(): String
+  }
+}
+
+ExerciseFactoryClient --> ExerciseFactory : selects registered creator by mode
+ChoiceExerciseFactory --|> ExerciseFactory
+TypingExerciseFactory --|> ExerciseFactory
+ChoiceExerciseFactory ..> ChoiceExercise : creates
+TypingExerciseFactory ..> TypingExercise : creates
+ChoiceExercise ..|> Exercise
+TypingExercise ..|> Exercise
+
+note top of ExerciseFactory
+  create() validates inputs, then calls createExercise().
+  Concrete subclasses override the factory method.
+end note
+note bottom of Exercise
+  Both products share grading and reward behavior.
+  This same interface is the Component in Decorator.
+end note
+@enduml

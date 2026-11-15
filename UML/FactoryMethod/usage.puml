@@ -1,0 +1,59 @@
+@startuml
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #40546E
+skinparam ParticipantBackgroundColor #F5F7FB
+skinparam maxMessageSize 250
+hide footbox
+title Factory Method - one creation workflow, two concrete products
+
+participant "LessonDirector" as Director
+participant "ExerciseFactoryClient" as Client
+participant "ChoiceExerciseFactory" as ChoiceFactory
+participant "TypingExerciseFactory" as TypingFactory
+participant "ChoiceExercise" as Choice
+participant "TypingExercise" as Typing
+
+note over Director, Client
+  During Practice words, the student selects
+  Multiple choice or Type the Russian translation.
+  The director repeats this call for each selected word.
+end note
+Director -> Client : create(mode, word, vocabulary)
+note right of Client
+  factories.get(mode) selects the creator
+  registered by Main.
+end note
+alt mode = CHOICE
+  Client -> ChoiceFactory : create(word, vocabulary)
+  note right of ChoiceFactory
+    Inherited ExerciseFactory.create()
+    validates inputs and invokes the override.
+  end note
+  ChoiceFactory -> ChoiceFactory : createExercise(word, vocabulary)
+  note right of ChoiceFactory
+    Add the correct translation and up to 3
+    different distractors; shuffle the choices.
+  end note
+  create Choice
+  ChoiceFactory -> Choice : new ChoiceExercise(word, choices)
+  ChoiceFactory --> Client : Exercise (ChoiceExercise)
+else mode = TYPING
+  Client -> TypingFactory : create(word, vocabulary)
+  note right of TypingFactory
+    Inherited ExerciseFactory.create()
+    invokes the concrete factory method.
+  end note
+  TypingFactory -> TypingFactory : createExercise(word, vocabulary)
+  create Typing
+  TypingFactory -> Typing : new TypingExercise(word)
+  TypingFactory --> Client : Exercise (TypingExercise)
+end
+Client --> Director : Exercise
+note over Director, Client
+  The director adds the returned product to the lesson.
+  The console uses its instruction() and options()
+  without creating concrete exercise classes itself.
+end note
+@enduml
