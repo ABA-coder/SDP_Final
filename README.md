@@ -8,7 +8,7 @@ We divided the six design patterns between three team members. Each member contr
 
 | Team member | Patterns | Contribution |
 | --- | --- | --- |
-| ABA-coder | Builder and Decorator | Building practice lessons and adding hints to exercises. |
+| Abylay | Builder and Decorator | Building practice lessons and adding hints to exercises. |
 | Allazhar | Facade and Factory Method | Coordinating the application and creating multiple-choice and typing exercises. |
 | Dias | Observer and Strategy | Sending progress notifications and selecting words for review. |
 
