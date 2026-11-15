@@ -1,0 +1,104 @@
+SDP_FINAL/
+├── Patterns/
+│   ├── Builder/
+│   │   ├── Lesson.java
+│   │   ├── LessonBuilder.java
+│   │   ├── LessonBuilderClient.java
+│   │   ├── LessonDirector.java
+│   │   └── VocabularyLessonBuilder.java
+│   ├── Decorator/
+│   │   ├── ExerciseDecorator.java
+│   │   ├── HintClient.java
+│   │   └── HintDecorator.java
+│   ├── Facade/
+│   │   ├── AnswerResult.java
+│   │   ├── ConsoleClient.java
+│   │   ├── EndOfInputException.java
+│   │   ├── FileProgressRepository.java
+│   │   ├── InMemoryVocabularyRepository.java
+│   │   ├── LanguageLearningFacade.java
+│   │   ├── LearningApplication.java
+│   │   ├── LessonSession.java
+│   │   ├── PatternChecks.java
+│   │   ├── ProgressFacade.java
+│   │   ├── ProgressRepository.java
+│   │   ├── StudySession.java
+│   │   ├── Terminal.java
+│   │   └── VocabularyRepository.java
+│   ├── FactoryMethod/
+│   │   ├── ChoiceExercise.java
+│   │   ├── ChoiceExerciseFactory.java
+│   │   ├── Exercise.java
+│   │   ├── ExerciseFactory.java
+│   │   ├── ExerciseFactoryClient.java
+│   │   ├── ExerciseMode.java
+│   │   ├── TypingExercise.java
+│   │   ├── TypingExerciseFactory.java
+│   │   └── Word.java
+│   ├── Observer/
+│   │   ├── AchievementObserver.java
+│   │   ├── ConsoleProgressObserver.java
+│   │   ├── ObserverClient.java
+│   │   ├── ProgressObserver.java
+│   │   ├── ProgressPublisher.java
+│   │   ├── ProgressSnapshot.java
+│   │   ├── ProgressSubject.java
+│   │   └── WordProgress.java
+│   └── Strategy/
+│       ├── ReviewClient.java
+│       ├── ReviewContext.java
+│       ├── ReviewStrategy.java
+│       ├── SpacedRepetitionStrategy.java
+│       └── WeakWordsStrategy.java
+├── UML/
+│   ├── Builder/
+│   │   ├── classes.png
+│   │   ├── classes.puml
+│   │   ├── classes.svg
+│   │   ├── usage.png
+│   │   ├── usage.puml
+│   │   └── usage.svg
+│   ├── Decorator/
+│   │   ├── classes.png
+│   │   ├── classes.puml
+│   │   ├── classes.svg
+│   │   ├── usage.png
+│   │   ├── usage.puml
+│   │   └── usage.svg
+│   ├── Facade/
+│   │   ├── classes.png
+│   │   ├── classes.puml
+│   │   ├── classes.svg
+│   │   ├── usage.png
+│   │   ├── usage.puml
+│   │   └── usage.svg
+│   ├── FactoryMethod/
+│   │   ├── classes.png
+│   │   ├── classes.puml
+│   │   ├── classes.svg
+│   │   ├── usage.png
+│   │   ├── usage.puml
+│   │   └── usage.svg
+│   ├── Observer/
+│   │   ├── classes.png
+│   │   ├── classes.puml
+│   │   ├── classes.svg
+│   │   ├── usage.png
+│   │   ├── usage.puml
+│   │   └── usage.svg
+│   ├── Project/
+│   │   ├── architecture.png
+│   │   ├── architecture.puml
+│   │   └── architecture.svg
+│   ├── Strategy/
+│   │   ├── classes.png
+│   │   ├── classes.puml
+│   │   ├── classes.svg
+│   │   ├── usage.png
+│   │   ├── usage.puml
+│   │   └── usage.svg
+│   └── README.md
+├── .gitignore
+├── Main.java
+├── README.md
+└── STRUCTURE.txt
