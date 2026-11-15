@@ -1,0 +1,125 @@
+@startuml
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+skinparam packageBackgroundColor white
+skinparam nodesep 28
+skinparam ranksep 45
+hide members
+title LinguaLab - project architecture and six integrated patterns
+
+class Main <<composition root>>
+
+package "Patterns.Facade\nStructural" {
+  class ConsoleClient <<Client>>
+  interface LearningApplication
+  class LanguageLearningFacade <<Facade>>
+  class StudySession <<learning cards>>
+  class LessonSession <<scored practice>>
+  class ProgressFacade <<Additional Facade>>
+  interface ProgressRepository
+  class FileProgressRepository
+}
+
+package "Patterns.Builder\nCreational" {
+  class LessonBuilderClient <<Client>>
+  class LessonDirector <<Director>>
+  interface LessonBuilder <<Builder>>
+  class VocabularyLessonBuilder <<Concrete Builder>>
+  class Lesson <<Product / record>>
+}
+
+package "Patterns.FactoryMethod\nCreational" {
+  class ExerciseFactoryClient <<Client>>
+  abstract class ExerciseFactory <<Creator>>
+  class ChoiceExerciseFactory <<Concrete Creator>>
+  class TypingExerciseFactory <<Concrete Creator>>
+  class ChoiceExercise <<Concrete Product / record>>
+  class TypingExercise <<Concrete Product / record>>
+  interface Exercise <<Product / shared Component>>
+  class Word <<record>>
+}
+
+package "Patterns.Decorator\nStructural" {
+  class HintClient <<Client>>
+  abstract class ExerciseDecorator <<Base Decorator>>
+  class HintDecorator <<Concrete Decorator>>
+}
+
+package "Patterns.Strategy\nBehavioral" {
+  class ReviewClient <<Client>>
+  class ReviewContext <<Context>>
+  interface ReviewStrategy <<Strategy>>
+  class SpacedRepetitionStrategy <<Concrete Strategy>>
+  class WeakWordsStrategy <<Concrete Strategy>>
+}
+
+package "Patterns.Observer\nBehavioral" {
+  interface ProgressSubject <<Subject>>
+  class ProgressPublisher <<Concrete Subject>>
+  interface ProgressObserver <<Observer>>
+  class ConsoleProgressObserver <<Concrete Observer>>
+  class AchievementObserver <<Concrete Observer>>
+}
+
+Main ..> LanguageLearningFacade : assembles dependencies
+Main ..> ConsoleClient : starts
+ConsoleClient --> LearningApplication : uses application API
+LanguageLearningFacade ..|> LearningApplication
+LanguageLearningFacade --> StudySession : Start a lesson
+LanguageLearningFacade --> LessonSession : Practice words
+LanguageLearningFacade --> ProgressFacade : save learning / answers
+ProgressFacade --> ProgressRepository : load / save
+FileProgressRepository ..|> ProgressRepository
+StudySession o--> Word : learning cards
+
+LanguageLearningFacade --> LessonBuilderClient : build practice
+LessonBuilderClient --> LessonDirector
+LessonBuilderClient ..> VocabularyLessonBuilder : creates
+LessonDirector ..> LessonBuilder : construction steps
+VocabularyLessonBuilder ..|> LessonBuilder
+VocabularyLessonBuilder ..> Lesson : builds
+LessonSession --> Lesson
+Lesson o--> Exercise : exercises
+
+LessonDirector --> ExerciseFactoryClient : create each exercise
+ExerciseFactoryClient --> ExerciseFactory : selected creator
+ChoiceExerciseFactory --|> ExerciseFactory
+TypingExerciseFactory --|> ExerciseFactory
+ChoiceExerciseFactory ..> ChoiceExercise : creates
+TypingExerciseFactory ..> TypingExercise : creates
+ChoiceExercise ..|> Exercise
+TypingExercise ..|> Exercise
+ExerciseFactory ..> Exercise : returns
+Exercise --> Word
+
+LanguageLearningFacade --> HintClient : h command
+HintClient ..> HintDecorator : creates
+HintDecorator --|> ExerciseDecorator
+ExerciseDecorator ..|> Exercise
+ExerciseDecorator o--> Exercise : wrapped
+
+LanguageLearningFacade --> ReviewClient : select practice words
+ReviewClient --> ReviewContext : switch algorithm
+ReviewContext --> ReviewStrategy : delegates
+SpacedRepetitionStrategy ..|> ReviewStrategy
+WeakWordsStrategy ..|> ReviewStrategy
+
+ProgressFacade --> ProgressSubject : publish after save
+ProgressPublisher ..|> ProgressSubject
+ProgressPublisher o--> ProgressObserver : subscribers
+ConsoleProgressObserver ..|> ProgressObserver
+AchievementObserver ..|> ProgressObserver
+
+legend bottom
+  Start a lesson: learning cards, translation and example; no scored answers.
+  Practice words: Strategy selects words; Builder and Factory Method create exercises;
+  Decorator adds hints; Facade saves progress; Observer reports saves and achievements.
+  Essential runtime types are shown. Individual pattern diagrams contain further detail.
+endlegend
+@enduml
