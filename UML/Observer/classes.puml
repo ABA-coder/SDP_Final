@@ -1,0 +1,67 @@
+@startuml
+!pragma layout smetana
+skinparam classAttributeIconSize 0
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam classBackgroundColor #F5F7FB
+skinparam classBorderColor #40546E
+skinparam ArrowColor #40546E
+hide empty members
+title Observer | Saved progress triggers independent notifications
+
+package "Patterns.Observer" {
+  class ObserverClient <<RegistrationClient>> {
+    + attachConsoleObservers(subject, initial, output)
+  }
+  interface ProgressSubject <<Subject>> {
+    + subscribe(observer: ProgressObserver)
+    + unsubscribe(observer: ProgressObserver)
+    + publish(progress: ProgressSnapshot)
+  }
+  class ProgressPublisher <<ConcreteSubject>> {
+    - observers: CopyOnWriteArrayList<ProgressObserver>
+    + publish(progress: ProgressSnapshot)
+  }
+  interface ProgressObserver <<Observer>> {
+    + onProgressChanged(progress: ProgressSnapshot)
+  }
+  class ConsoleProgressObserver <<ConcreteObserver>> {
+    + onProgressChanged(progress: ProgressSnapshot)
+  }
+  class AchievementObserver <<ConcreteObserver>> {
+    - mastered: Set<String>
+    + onProgressChanged(progress: ProgressSnapshot)
+  }
+  class ProgressSnapshot <<ImmutableRecord>> {
+    + xp(): int
+    + studied(): int
+    + accuracyPercent(): int
+    + words(): Map<String, WordProgress>
+  }
+}
+class "ProgressFacade\n(Patterns.Facade)" as ProgressFacade <<NotificationSource>> {
+  + notifyObservers()
+}
+
+ObserverClient ..> ProgressSubject : registers subscribers
+ObserverClient ..> ConsoleProgressObserver : creates
+ObserverClient ..> AchievementObserver : creates
+ProgressPublisher ..|> ProgressSubject
+ProgressPublisher o--> "0..*" ProgressObserver : stores and notifies
+ConsoleProgressObserver ..|> ProgressObserver
+AchievementObserver ..|> ProgressObserver
+ProgressFacade --> ProgressSubject : publishes saved snapshot
+ProgressObserver ..> ProgressSnapshot : receives
+
+note bottom of ProgressSnapshot
+  ConsoleProgressObserver prints [Saved] totals.
+  AchievementObserver prints [Achievement] when a word newly
+  reaches mastery: at least 3 consecutive correct answers.
+  Confirming a learning card does not award mastery.
+end note
+note top of ObserverClient
+  Main calls attachConsoleObservers() once at startup.
+  Both subscribers receive the same saved snapshot.
+end note
+@enduml

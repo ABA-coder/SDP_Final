@@ -1,0 +1,76 @@
+@startuml
+skinparam defaultFontName Segoe UI
+skinparam shadowing false
+skinparam backgroundColor white
+skinparam ArrowColor #40546E
+skinparam sequenceParticipantBackgroundColor #F5F7FB
+skinparam maxMessageSize 250
+hide footbox
+title Observer in use | Register once; publish only saved progress
+
+participant Main
+participant ObserverClient as Registration
+participant LanguageLearningFacade as Facade
+participant ProgressFacade as Progress
+participant "repository: ProgressRepository" as Storage
+participant ProgressPublisher as Publisher
+participant ConsoleProgressObserver as Saved
+participant AchievementObserver as Achievement
+
+group Application startup
+  Main -> Registration : attachConsoleObservers(publisher, initialSnapshot, output)
+  create Saved
+  Registration -> Saved : new ConsoleProgressObserver(output)
+  Registration -> Publisher : subscribe(savedObserver)
+  create Achievement
+  Registration -> Achievement : new AchievementObserver(initialSnapshot, output)
+  note right of Achievement
+    Remember already mastered word IDs
+    to avoid repeating them at startup.
+  end note
+  Registration -> Publisher : subscribe(achievementObserver)
+end
+
+group Practice answer submitted through the facade
+  Facade -> Progress : recordAnswer(exercise, answer)
+  note over Progress
+    Grade the answer and prepare a new immutable snapshot.
+  end note
+  Progress -> Storage : save(nextSnapshot)
+  alt Save succeeds
+    Storage --> Progress : saved
+    note over Progress
+      Set the current progress to nextSnapshot.
+    end note
+    Progress --> Facade : AnswerResult
+    note over Facade
+      Record the result in the active LessonSession.
+    end note
+    Facade -> Progress : notifyObservers()
+    Progress -> Publisher : publish(savedSnapshot)
+    Publisher -> Saved : onProgressChanged(savedSnapshot)
+    note right of Saved
+      Print [Saved] totals.
+    end note
+    Publisher -> Achievement : onProgressChanged(savedSnapshot)
+    opt A word newly has 3 or more consecutive correct answers
+      note right of Achievement
+        Print [Achievement] Word mastered.
+      end note
+    end
+  else Save fails
+    Storage --> Progress : IOException
+    Progress --> Facade : IOException
+    note over Facade, Publisher
+      No observer notification is sent for unsaved progress.
+      The submitted answer remains retryable.
+    end note
+  end
+end
+
+note over Facade, Achievement
+  Learning cards follow the same save-then-notify order:
+  learnCurrentWord() -> recordStudy(word, lastCard) -> advance card -> notifyObservers().
+  Card confirmation adds no answer attempts or XP and preserves existing mastery.
+end note
+@enduml
